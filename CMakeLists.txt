@@ -37,7 +37,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(SemaforoInteligente SemaforoInteligente.c lib/ssd1306.c)
+add_executable(SemaforoInteligente SemaforoInteligente.c lib/ssd1306.c lib/numeros.c)
 
 pico_set_program_name(SemaforoInteligente "SemaforoInteligente")
 pico_set_program_version(SemaforoInteligente "0.1")
