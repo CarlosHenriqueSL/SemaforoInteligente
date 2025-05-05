@@ -135,49 +135,78 @@ void vTaskMatriz(void *pvParameters)
         {
             current_numero = 5;            
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                           
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                               
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                              
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                
             current_numero = 2;   
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));   
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));     
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));               
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                 
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));   
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));     
             current_numero = 5;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                           
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                            
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                               
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));                              
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));                                 
             current_numero--;
             desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
-            vTaskDelay(pdMS_TO_TICKS(1000));            
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));              
+        }
+        else 
+        {
+            for (float brightness = 0.0; brightness <= 1 && !modoNormalOn; brightness += 0.05)
+            {
+                desenho_pio(numero2x, 0, pio, sm, brightness, brightness, 0.0);   
+                vTaskDelay(pdMS_TO_TICKS(63.75));
+            }
+            for (float brightness = 1.0; brightness >= 0 && !modoNormalOn; brightness -= 0.05)
+            {
+                desenho_pio(numero2x, 0, pio, sm, brightness, brightness, 0.0);   
+                vTaskDelay(pdMS_TO_TICKS(63.75));
+            }
+           
         }
     }   
 }
@@ -365,10 +394,25 @@ void vTaskDisplay()
         ssd1306_line(&ssd, 89, 2, 98, 2, cor);
         ssd1306_line(&ssd, 89, 1, 98, 1, cor);
 
-        ssd1306_send_data(&ssd);
-
         if (modoNormalOn)
         {
+            ssd1306_line(&ssd, 61, 44, 69, 44, !cor);
+            ssd1306_line(&ssd, 60, 43, 70, 43, !cor);
+            ssd1306_line(&ssd, 59, 42, 71, 42, !cor);
+            ssd1306_line(&ssd, 58, 41, 72, 41, !cor);
+            ssd1306_line(&ssd, 57, 40, 73, 40, !cor);
+            ssd1306_line(&ssd, 57, 39, 73, 39, !cor);
+            ssd1306_line(&ssd, 57, 38, 73, 38, !cor);
+            ssd1306_line(&ssd, 57, 37, 73, 37, !cor);
+            ssd1306_line(&ssd, 57, 36, 73, 36, !cor);
+            ssd1306_line(&ssd, 57, 35, 73, 35, !cor);
+            ssd1306_line(&ssd, 57, 34, 73, 34, !cor);
+            ssd1306_line(&ssd, 57, 33, 73, 33, !cor);
+            ssd1306_line(&ssd, 58, 32, 72, 32, !cor);
+            ssd1306_line(&ssd, 59, 31, 71, 31, !cor);
+            ssd1306_line(&ssd, 60, 30, 70, 30, !cor);
+            ssd1306_line(&ssd, 61, 29, 69, 29, !cor);
+
             ssd1306_line(&ssd, 27, 44, 35, 44, cor);
             ssd1306_line(&ssd, 26, 43, 36, 43, cor);
             ssd1306_line(&ssd, 25, 42, 37, 42, cor);
@@ -488,8 +532,27 @@ void vTaskDisplay()
         }
         else
         {
+            ssd1306_line(&ssd, 61, 44, 69, 44, cor);
+            ssd1306_line(&ssd, 60, 43, 70, 43, cor);
+            ssd1306_line(&ssd, 59, 42, 71, 42, cor);
+            ssd1306_line(&ssd, 58, 41, 72, 41, cor);
+            ssd1306_line(&ssd, 57, 40, 73, 40, cor);
+            ssd1306_line(&ssd, 57, 39, 73, 39, cor);
+            ssd1306_line(&ssd, 57, 38, 73, 38, cor);
+            ssd1306_line(&ssd, 57, 37, 73, 37, cor);
+            ssd1306_line(&ssd, 57, 36, 73, 36, cor);
+            ssd1306_line(&ssd, 57, 35, 73, 35, cor);
+            ssd1306_line(&ssd, 57, 34, 73, 34, cor);
+            ssd1306_line(&ssd, 57, 33, 73, 33, cor);
+            ssd1306_line(&ssd, 58, 32, 72, 32, cor);
+            ssd1306_line(&ssd, 59, 31, 71, 31, cor);
+            ssd1306_line(&ssd, 60, 30, 70, 30, cor);
+            ssd1306_line(&ssd, 61, 29, 69, 29, cor);
+
+            ssd1306_send_data(&ssd);
+
+            vTaskDelay(pdMS_TO_TICKS(100));                                   
         }
-        ssd1306_send_data(&ssd);
     }
 }
 
@@ -509,8 +572,8 @@ int main()
                 NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vTaskDisplay, "Task display", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vTaskMatriz, "Matriz", configMINIMAL_STACK_SIZE,
-                NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vTaskMatriz, "Task matriz", configMINIMAL_STACK_SIZE,
+                NULL, tskIDLE_PRIORITY, NULL);                
     vTaskStartScheduler();
     panic_unsupported();
 }

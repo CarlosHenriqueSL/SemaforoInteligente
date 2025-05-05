@@ -13,5 +13,6 @@ extern double numero7[NUM_PIXELS];
 extern double numero8[NUM_PIXELS];
 extern double numero9[NUM_PIXELS];
 extern double numero0[NUM_PIXELS];
+extern double numero2x[NUM_PIXELS];
 
 #endif
