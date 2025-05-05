@@ -28,7 +28,6 @@
 
 volatile bool modoNormalOn = true;
 
-static TaskHandle_t xTaskRGBHandle = NULL;
 static uint32_t last_irq_time_a = 0;
 
 void iniciar_pwm()
@@ -63,7 +62,7 @@ void vTaskBuzzer(uint frequencia, uint duracao_ms)
     pwm_set_chan_level(slice, pwm_gpio_to_channel(BUZZER_PIN), 0);
 }
 
-void vTaskRGB(void *pvParameters)
+void vTaskRGB()
 {
     while (true)
     {
@@ -103,115 +102,308 @@ void vTaskRGB(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
-uint32_t matrix_rgb(double r, double g, double b)
-{
-    unsigned char R = r * 255, G = g * 255, B = b * 255;
-    return (G << 24) | (R << 16) | (B << 8);
-}
 
-void desenho_pio(double *desenho, uint32_t valor_led, PIO pio, uint sm, double r, double g, double b)
-{
-    for (int i = 0; i < NUM_PIXELS; i++)
-    {
-        uint32_t valor_led = matrix_rgb(desenho[24 - i] * r, desenho[24 - i] * g, desenho[24 - i] * b);
-        pio_sm_put_blocking(pio, sm, valor_led);
-    }
-}
-
-void vTaskMatriz(void *pvParameters)
+void vTaskMatriz()
 {
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &blink_program);
     uint sm = pio_claim_unused_sm(pio, true);
     blink_program_init(pio, sm, offset, WS2812_PIN);
-
     double *numeros[10] = {numero1, numero2, numero3, numero4, numero5, numero6};
-
     volatile static uint current_numero;
 
     while (true)
     {
         if (modoNormalOn)
         {
-            current_numero = 5;            
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                           
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                               
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                              
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 0.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                
-            current_numero = 2;   
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));     
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                 
-            current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 1.0, 0.0);  
-            for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));     
             current_numero = 5;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                            
+                vTaskDelay(pdMS_TO_TICKS(100));
+
             current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                
+                vTaskDelay(pdMS_TO_TICKS(100));
+
             current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                               
+                vTaskDelay(pdMS_TO_TICKS(100));
+
             current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                
+                vTaskDelay(pdMS_TO_TICKS(100));
+
             current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));                                 
+                vTaskDelay(pdMS_TO_TICKS(100));
+
             current_numero--;
-            desenho_pio(numeros[current_numero], 0, pio, sm, 1.0, 0.0, 0.0);  
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = 0.0;
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
             for (int i = 0; i < 10 && modoNormalOn; i += 1)
-                vTaskDelay(pdMS_TO_TICKS(100));              
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero = 2;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = numeros[current_numero][24 - i];
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero = 5;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
+
+            current_numero--;
+
+            for (int i = 0; i < NUM_PIXELS; i++)
+            {
+                double r = numeros[current_numero][24 - i];
+                double g = 0.0;
+                double b = 0.0;
+                unsigned char R = r * 255;
+                unsigned char G = g * 255;
+                unsigned char B = b * 255;
+                uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                pio_sm_put_blocking(pio, sm, valor_led);
+            }
+
+            for (int i = 0; i < 10 && modoNormalOn; i += 1)
+                vTaskDelay(pdMS_TO_TICKS(100));
         }
-        else 
+        else
         {
-            for (float brightness = 0.0; brightness <= 1 && !modoNormalOn; brightness += 0.05)
+            for (float brightness = 0.0; brightness <= 1.0 && !modoNormalOn; brightness += 0.05)
             {
-                desenho_pio(numero2x, 0, pio, sm, brightness, brightness, 0.0);   
+                for (int i = 0; i < NUM_PIXELS; i++)
+                {
+                    double intensity = numero2x[24 - i];
+                    unsigned char R = (unsigned char)(intensity * brightness * 255);
+                    unsigned char G = (unsigned char)(intensity * brightness * 255);
+                    unsigned char B = 0;
+                    uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                    pio_sm_put_blocking(pio, sm, valor_led);
+                }
                 vTaskDelay(pdMS_TO_TICKS(63.75));
             }
-            for (float brightness = 1.0; brightness >= 0 && !modoNormalOn; brightness -= 0.05)
+            for (float brightness = 1.0; brightness >= 0.0 && !modoNormalOn; brightness -= 0.05)
             {
-                desenho_pio(numero2x, 0, pio, sm, brightness, brightness, 0.0);   
+                for (int i = 0; i < NUM_PIXELS; i++)
+                {
+                    double intensity = numero2x[24 - i];
+                    unsigned char R = (unsigned char)(intensity * brightness * 255);
+                    unsigned char G = (unsigned char)(intensity * brightness * 255);
+                    unsigned char B = 0;
+                    uint32_t valor_led = (G << 24) | (R << 16) | (B << 8);
+                    pio_sm_put_blocking(pio, sm, valor_led);
+                }
                 vTaskDelay(pdMS_TO_TICKS(63.75));
             }
-           
         }
-    }   
+    }
 }
 
-void vTaskBotao(void *pvParameters)
+void vTaskBotao()
 {
     bool estadoAnterior = true; // Começa com true porque o botão tem pull-up (não pressionado)
 
@@ -551,7 +743,7 @@ void vTaskDisplay()
 
             ssd1306_send_data(&ssd);
 
-            vTaskDelay(pdMS_TO_TICKS(100));                                   
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 }
@@ -567,13 +759,13 @@ int main()
     gpio_pull_up(BUTTON_A);
 
     xTaskCreate(vTaskRGB, "Modo normal", configMINIMAL_STACK_SIZE,
-                NULL, tskIDLE_PRIORITY, &xTaskRGBHandle);
+                NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vTaskBotao, "Botao", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vTaskDisplay, "Task display", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vTaskMatriz, "Task matriz", configMINIMAL_STACK_SIZE,
-                NULL, tskIDLE_PRIORITY, NULL);                
+                NULL, tskIDLE_PRIORITY, NULL);
     vTaskStartScheduler();
     panic_unsupported();
 }
