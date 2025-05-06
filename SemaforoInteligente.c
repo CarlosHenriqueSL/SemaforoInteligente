@@ -31,14 +31,62 @@
 volatile bool modoNormalOn = true;
 
 /* Tarefa para tocar o buzzer com pwm */
-void vTaskBuzzer(uint frequencia, uint duracao_ms)
+void vTaskBuzzer()
 {
     uint slice = pwm_gpio_to_slice_num(BUZZER_PIN);
-    uint wrap = 0 / frequencia;
+    pwm_set_enabled(slice, true);
+    uint chan = pwm_gpio_to_channel(BUZZER_PIN);
+    uint wrap = 125000000 / 3500;
     pwm_set_wrap(slice, wrap);
-    pwm_set_chan_level(slice, pwm_gpio_to_channel(BUZZER_PIN), wrap / 2);
-    vTaskDelay(pdMS_TO_TICKS(duracao_ms));
-    pwm_set_chan_level(slice, pwm_gpio_to_channel(BUZZER_PIN), 0);
+
+    while (true)
+    {
+        if (modoNormalOn)
+        {
+            wrap = 125000000 / 3500;
+
+            // 1 beep curto por um segundo no sinal verde
+            for (int i = 0; i < 6 && modoNormalOn; i += 1)
+            {
+                pwm_set_chan_level(slice, chan, wrap / 2);
+                for (int i = 0; i < 10; i++)
+                {
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                }               
+                pwm_set_chan_level(slice, chan, 0);
+                wrap = 0;
+            }
+
+            wrap = 125000000 / 4000;
+
+            // Beep rapido intermitente para o sinal amarelo
+            for (int i = 0; i < 6 && modoNormalOn; i += 1)
+            {
+                pwm_set_chan_level(slice, chan, wrap / 2);
+                vTaskDelay(pdMS_TO_TICKS(250));
+                pwm_set_chan_level(slice, chan, 0);
+                vTaskDelay(pdMS_TO_TICKS(250));
+            }
+
+            wrap = 125000000 / 2000;
+
+            // Tom contínuo curto para o sinal vermelho
+            for (int i = 0; i < 3 && modoNormalOn; ++i)
+            {
+                pwm_set_chan_level(slice, chan, wrap / 2);
+                vTaskDelay(pdMS_TO_TICKS(500));
+                pwm_set_chan_level(slice, chan, 0);
+                vTaskDelay(pdMS_TO_TICKS(1500));
+            }            
+        } else
+        {
+            // Beep lento a cada 2s
+            pwm_set_chan_level(slice, chan, wrap / 2);
+            vTaskDelay(pdMS_TO_TICKS(100));  
+            pwm_set_chan_level(slice, chan, 0);
+            vTaskDelay(pdMS_TO_TICKS(1900)); 
+        }
+    }
 }
 
 /* Tarefa para alternar entre os LEDs RGB com PWM */
@@ -87,12 +135,12 @@ void vTaskRGB()
     }
 }
 
-/* 
+/*
  * Tarefa para a matriz de LEDs. No modo normal, inicia uma contagem regressiva com a luz de cada LED RGB:
- * 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho, o ciclo reinicia 
+ * 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho, o ciclo reinicia
  * junto com a tarefa dos LEDs RGB. Para o modo noturno, ele simula um PWM com luz amarela junto com o RGB
  * amarelo.
-*/
+ */
 void vTaskMatriz()
 {
     PIO pio = pio0;
@@ -430,31 +478,31 @@ void vTaskBotao()
         }
 
         estadoAnterior = estadoAtual;
-        vTaskDelay(pdMS_TO_TICKS(10)); 
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
-/* 
- * Desenha um semaforo no display SSD1306. No modo normal, inicia uma contagem regressiva com a luz 
- * de cada LED RGB: 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho, 
- * apos isso, o ciclo reinicia junto com a tarefa dos LEDs RGB. Para o modo noturno, ele simula um PWM 
- * com luz amarela junto com o RGB amarelo no modo normal, as luzes do semaforo alternam junto com os 
- * LEDs RGB: verde, amarelo e vermelho. Para o modo noturno, apenas a luz amarela. O display nao tem 
+/*
+ * Desenha um semaforo no display SSD1306. No modo normal, inicia uma contagem regressiva com a luz
+ * de cada LED RGB: 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho,
+ * apos isso, o ciclo reinicia junto com a tarefa dos LEDs RGB. Para o modo noturno, ele simula um PWM
+ * com luz amarela junto com o RGB amarelo no modo normal, as luzes do semaforo alternam junto com os
+ * LEDs RGB: verde, amarelo e vermelho. Para o modo noturno, apenas a luz amarela. O display nao tem
  * cores de fato, eh apenas uma simulacao das posicoes das luzes de um semaforo real.
-*/
+ */
 void vTaskDisplay()
 {
     // Configuracao do I2C para o display
     i2c_init(I2C_PORT, 400 * 1000);
 
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);                    
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);                    
-    gpio_pull_up(I2C_SDA);                                        
-    gpio_pull_up(I2C_SCL);                                       
-    ssd1306_t ssd;                                                
-    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT); 
-    ssd1306_config(&ssd);                                        
-    ssd1306_send_data(&ssd);                                      
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+    ssd1306_t ssd;
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT);
+    ssd1306_config(&ssd);
+    ssd1306_send_data(&ssd);
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
@@ -528,7 +576,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 57, 39 - i, 73, 39 - i, !cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, !cor);
             }
@@ -542,7 +590,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 23, 39 - i, 39, 39 - i, cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 24 + i, 32 - i, 38 - i, 32 - i, cor);
             }
@@ -561,7 +609,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 23, 39 - i, 39, 39 - i, !cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 24 + i, 32 - i, 38 - i, 32 - i, !cor);
             }
@@ -575,7 +623,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 57, 39 - i, 73, 39 - i, cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, cor);
             }
@@ -594,7 +642,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 57, 39 - i, 73, 39 - i, !cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, !cor);
             }
@@ -606,7 +654,7 @@ void vTaskDisplay()
             }
             for (int i = 0; i < 7; i++)
             {
-                ssd1306_line(&ssd, 91, 39 - i, 107, 39 - i, cor);       
+                ssd1306_line(&ssd, 91, 39 - i, 107, 39 - i, cor);
             }
             ssd1306_line(&ssd, 92, 32, 106, 32, cor);
             ssd1306_line(&ssd, 93, 31, 105, 31, cor);
@@ -625,7 +673,7 @@ void vTaskDisplay()
             }
             for (int i = 0; i < 7; i++)
             {
-                ssd1306_line(&ssd, 91, 39 - i, 107, 39 - i, !cor);       
+                ssd1306_line(&ssd, 91, 39 - i, 107, 39 - i, !cor);
             }
             ssd1306_line(&ssd, 92, 32, 106, 32, !cor);
             ssd1306_line(&ssd, 93, 31, 105, 31, !cor);
@@ -643,7 +691,7 @@ void vTaskDisplay()
             {
                 ssd1306_line(&ssd, 57, 39 - i, 73, 39 - i, cor);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, cor);
             }
@@ -691,6 +739,8 @@ int main()
     xTaskCreate(vTaskDisplay, "Tarefa do display SSD1306", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vTaskMatriz, "Tarefa da matriz de LEDs", configMINIMAL_STACK_SIZE,
+                NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vTaskBuzzer, "Tarefa do buzzer", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
     vTaskStartScheduler();
     panic_unsupported();
