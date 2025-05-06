@@ -43,6 +43,7 @@ void vTaskBuzzer()
     {
         if (modoNormalOn)
         {
+            pwm_set_chan_level(slice, chan, 0);
             wrap = 125000000 / 3500;
 
             // 1 beep curto por um segundo no sinal verde
@@ -52,12 +53,13 @@ void vTaskBuzzer()
                 for (int i = 0; i < 10; i++)
                 {
                     vTaskDelay(pdMS_TO_TICKS(100));
-                }               
+                }
                 pwm_set_chan_level(slice, chan, 0);
                 wrap = 0;
             }
 
             wrap = 125000000 / 4000;
+            pwm_set_chan_level(slice, chan, 0);
 
             // Beep rapido intermitente para o sinal amarelo
             for (int i = 0; i < 6 && modoNormalOn; i += 1)
@@ -69,22 +71,31 @@ void vTaskBuzzer()
             }
 
             wrap = 125000000 / 2000;
-
+            pwm_set_chan_level(slice, chan, 0);
+            
             // Tom contínuo curto para o sinal vermelho
             for (int i = 0; i < 3 && modoNormalOn; ++i)
             {
                 pwm_set_chan_level(slice, chan, wrap / 2);
                 vTaskDelay(pdMS_TO_TICKS(500));
                 pwm_set_chan_level(slice, chan, 0);
-                vTaskDelay(pdMS_TO_TICKS(1500));
-            }            
-        } else
+                for (int i = 0; i < 14; i++)
+                {
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                }
+            }
+            pwm_set_chan_level(slice, chan, 0);
+        }
+        else
         {
             // Beep lento a cada 2s
             pwm_set_chan_level(slice, chan, wrap / 2);
-            vTaskDelay(pdMS_TO_TICKS(100));  
+            vTaskDelay(pdMS_TO_TICKS(100));
             pwm_set_chan_level(slice, chan, 0);
-            vTaskDelay(pdMS_TO_TICKS(1900)); 
+            for (int i = 0; i < 19; i++)
+            {
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
         }
     }
 }
