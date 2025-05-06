@@ -1,4 +1,4 @@
-# Semáforo inteligente com a Raspberry Pi Pico W**
+# Semáforo inteligente com a Raspberry Pi Pico W
 **EMBARCATECH - Fase 2**
 
 **Sistema de Semáforo Inteligente usando FreeRTOS e a BitDogLab**
