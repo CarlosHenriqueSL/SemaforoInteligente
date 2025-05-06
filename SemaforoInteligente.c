@@ -11,6 +11,7 @@
 #include "ssd1306.h"
 #include "numeros.h"
 
+// Definicao dos pinos
 #define WS2812_PIN 7
 
 #define I2C_PORT i2c1
@@ -26,8 +27,10 @@
 
 #define BUZZER_PIN 21
 
+// Flag para alternar o modo. True = modo normal, false = modo noturno.
 volatile bool modoNormalOn = true;
 
+/* Tarefa para tocar o buzzer com pwm */
 void vTaskBuzzer(uint frequencia, uint duracao_ms)
 {
     uint slice = pwm_gpio_to_slice_num(BUZZER_PIN);
@@ -38,6 +41,7 @@ void vTaskBuzzer(uint frequencia, uint duracao_ms)
     pwm_set_chan_level(slice, pwm_gpio_to_channel(BUZZER_PIN), 0);
 }
 
+/* Tarefa para alternar entre os LEDs RGB com PWM */
 void vTaskRGB()
 {
     while (true)
@@ -46,22 +50,26 @@ void vTaskRGB()
         pwm_set_gpio_level(LED_PIN_RED, 0);
         if (modoNormalOn)
         {
-            pwm_set_gpio_level(LED_PIN_GREEN, 255);
+            pwm_set_gpio_level(LED_PIN_GREEN, 255); // Verde, por 6 segundos
+
+            /* O for com varios delays eh necessario para alternar o modo da tarefa enquanto esse bloco
+               ainda esta em execucao. */
             for (int i = 0; i < 6000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
-            pwm_set_gpio_level(LED_PIN_RED, 255);
+            pwm_set_gpio_level(LED_PIN_RED, 255); // Amarelo, por 3 segundos
             for (int i = 0; i < 3000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
-            pwm_set_gpio_level(LED_PIN_GREEN, 0);
+            pwm_set_gpio_level(LED_PIN_GREEN, 0); // Vermelho, por 6 segundos
             for (int i = 0; i < 6000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
-            pwm_set_gpio_level(LED_PIN_RED, 0);
+            pwm_set_gpio_level(LED_PIN_RED, 0); // Desliga o LED vermelho, reinicia o ciclo
         }
         else
         {
+            // Modo noturno, luz amarela alternando com PMW lentamente
             for (uint brightness = 0; brightness <= 255 && !modoNormalOn; brightness++)
             {
                 pwm_set_gpio_level(LED_PIN_GREEN, brightness);
@@ -79,13 +87,23 @@ void vTaskRGB()
     }
 }
 
+/* 
+ * Tarefa para a matriz de LEDs. No modo normal, inicia uma contagem regressiva com a luz de cada LED RGB:
+ * 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho, o ciclo reinicia 
+ * junto com a tarefa dos LEDs RGB. Para o modo noturno, ele simula um PWM com luz amarela junto com o RGB
+ * amarelo.
+*/
 void vTaskMatriz()
 {
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &blink_program);
     uint sm = pio_claim_unused_sm(pio, true);
     blink_program_init(pio, sm, offset, WS2812_PIN);
+
+    // Vetor com os numeros que serao exibidos na matriz. Todos eles estao desenhados em lib/numeros.c
     double *numeros[6] = {numero1, numero2, numero3, numero4, numero5, numero6};
+
+    // Numero que sera exibido no momento
     volatile static uint current_numero;
 
     while (true)
@@ -94,6 +112,7 @@ void vTaskMatriz()
         {
             current_numero = 5;
 
+            // Desenha um 6 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -111,6 +130,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 5 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -128,6 +148,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 4 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -145,6 +166,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 3 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -162,6 +184,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 2 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -179,6 +202,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 1 na cor verde por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = 0.0;
@@ -196,6 +220,7 @@ void vTaskMatriz()
 
             current_numero = 2;
 
+            // Desenha um 3 na cor amarela por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -213,6 +238,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 2 na cor amarela por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -230,6 +256,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 1 na cor amarela por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -247,6 +274,7 @@ void vTaskMatriz()
 
             current_numero = 5;
 
+            // Desenha um 6 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -264,6 +292,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 5 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -281,6 +310,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 4 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -298,6 +328,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 3 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -315,6 +346,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 2 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -332,6 +364,7 @@ void vTaskMatriz()
 
             current_numero--;
 
+            // Desenha um 1 na cor vermelha por 1 segundo
             for (int i = 0; i < NUM_PIXELS; i++)
             {
                 double r = numeros[current_numero][24 - i];
@@ -349,6 +382,7 @@ void vTaskMatriz()
         }
         else
         {
+            // Todos os LEDs da matriz brilhando lentamente, simulando o PWM do LED RGB.
             for (float brightness = 0.0; brightness <= 1.0 && !modoNormalOn; brightness += 0.05)
             {
                 for (int i = 0; i < NUM_PIXELS; i++)
@@ -379,9 +413,10 @@ void vTaskMatriz()
     }
 }
 
+/* Tarefa do botao A, alterna entre o modo normal e o modo noturno.*/
 void vTaskBotao()
 {
-    bool estadoAnterior = true; // Começa com true porque o botão tem pull-up (não pressionado)
+    bool estadoAnterior = true;
 
     while (true)
     {
@@ -395,24 +430,31 @@ void vTaskBotao()
         }
 
         estadoAnterior = estadoAtual;
-        vTaskDelay(pdMS_TO_TICKS(10)); // Pequeno delay para leitura
+        vTaskDelay(pdMS_TO_TICKS(10)); 
     }
 }
 
+/* 
+ * Desenha um semaforo no display SSD1306. No modo normal, inicia uma contagem regressiva com a luz 
+ * de cada LED RGB: 6 ate 1 para o LED verde, 3 ate 1 para o LED amarelo e 6 ate 1 para o LED vermelho, 
+ * apos isso, o ciclo reinicia junto com a tarefa dos LEDs RGB. Para o modo noturno, ele simula um PWM 
+ * com luz amarela junto com o RGB amarelo no modo normal, as luzes do semaforo alternam junto com os 
+ * LEDs RGB: verde, amarelo e vermelho. Para o modo noturno, apenas a luz amarela. O display nao tem 
+ * cores de fato, eh apenas uma simulacao das posicoes das luzes de um semaforo real.
+*/
 void vTaskDisplay()
 {
-    // I2C Initialisation. Using it at 400Khz.
+    // Configuracao do I2C para o display
     i2c_init(I2C_PORT, 400 * 1000);
 
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
-    gpio_pull_up(I2C_SDA);                                        // Pull up the data line
-    gpio_pull_up(I2C_SCL);                                        // Pull up the clock line
-    ssd1306_t ssd;                                                // Inicializa a estrutura do display
-    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT); // Inicializa o display
-    ssd1306_config(&ssd);                                         // Configura o display
-    ssd1306_send_data(&ssd);                                      // Envia os dados para o display
-    // Limpa o display. O display inicia com todos os pixels apagados.
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);                    
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);                    
+    gpio_pull_up(I2C_SDA);                                        
+    gpio_pull_up(I2C_SCL);                                       
+    ssd1306_t ssd;                                                
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT); 
+    ssd1306_config(&ssd);                                        
+    ssd1306_send_data(&ssd);                                      
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
@@ -420,6 +462,8 @@ void vTaskDisplay()
     while (true)
     {
         ssd1306_fill(&ssd, !cor);
+
+        // Desenha a estrutura do semaforo
         ssd1306_line(&ssd, 10, 58, 119, 58, cor);
         ssd1306_line(&ssd, 9, 57, 120, 57, cor);
 
@@ -475,6 +519,7 @@ void vTaskDisplay()
 
         if (modoNormalOn)
         {
+            // Desliga a luz amarela do semaforo para caso esteja ligada
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 61 - i, 44 - i, 69 + i, 44 - i, !cor);
@@ -488,6 +533,7 @@ void vTaskDisplay()
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, !cor);
             }
 
+            // Liga a luz verde do semaforo por 6 segundos
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 27 - i, 44 - i, 35 + i, 44 - i, cor);
@@ -506,6 +552,7 @@ void vTaskDisplay()
             for (int i = 0; i < 6000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
+            // Desliga a luz verde do semaforo
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 27 - i, 44 - i, 35 + i, 44 - i, !cor);
@@ -519,6 +566,7 @@ void vTaskDisplay()
                 ssd1306_line(&ssd, 24 + i, 32 - i, 38 - i, 32 - i, !cor);
             }
 
+            // Liga a luz amarela do semaforo por 3 segundos
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 61 - i, 44 - i, 69 + i, 44 - i, cor);
@@ -537,6 +585,7 @@ void vTaskDisplay()
             for (int i = 0; i < 3000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
+            // Desliga a luz amarela do semaforo
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 61 - i, 44 - i, 69 + i, 44 - i, !cor);
@@ -550,6 +599,7 @@ void vTaskDisplay()
                 ssd1306_line(&ssd, 58 + i, 32 - i, 72 - i, 32 - i, !cor);
             }
 
+            // Liga a luz vermelha do semaforo por 6 segundos
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 95 - i, 44 - i, 103 + i, 44 - i, cor);
@@ -568,7 +618,8 @@ void vTaskDisplay()
             for (int i = 0; i < 6000 && modoNormalOn; i += 100)
                 vTaskDelay(pdMS_TO_TICKS(100));
 
-             for (int i = 0; i < 5; i++)
+            // Desliga a luz vermelha do semaforo
+            for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 95 - i, 44 - i, 103 + i, 44 - i, !cor);
             }
@@ -583,6 +634,7 @@ void vTaskDisplay()
         }
         else
         {
+            // Deixa ligada apenas a luz amarela do semaforo, isso por que apenas o RGB amarelo esta aceso
             for (int i = 0; i < 5; i++)
             {
                 ssd1306_line(&ssd, 61 - i, 44 - i, 69 + i, 44 - i, cor);
@@ -612,6 +664,7 @@ int main()
     gpio_init(LED_PIN_RED);
     gpio_set_dir(LED_PIN_RED, GPIO_OUT);
 
+    // Inicializando o PWM para o LED verde, LED vermelho e para o buzzer.
     gpio_set_function(LED_PIN_GREEN, GPIO_FUNC_PWM);
     gpio_set_function(LED_PIN_RED, GPIO_FUNC_PWM);
     gpio_set_function(BUZZER_PIN, GPIO_FUNC_PWM);
@@ -630,13 +683,14 @@ int main()
     gpio_set_dir(BUTTON_A, GPIO_IN);
     gpio_pull_up(BUTTON_A);
 
-    xTaskCreate(vTaskRGB, "Modo normal", configMINIMAL_STACK_SIZE,
+    // Criacao das tarefas
+    xTaskCreate(vTaskRGB, "Tarefa dos LEDs", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vTaskBotao, "Botao", configMINIMAL_STACK_SIZE,
+    xTaskCreate(vTaskBotao, "Tarefa do botao A", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vTaskDisplay, "Task display", configMINIMAL_STACK_SIZE,
+    xTaskCreate(vTaskDisplay, "Tarefa do display SSD1306", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vTaskMatriz, "Task matriz", configMINIMAL_STACK_SIZE,
+    xTaskCreate(vTaskMatriz, "Tarefa da matriz de LEDs", configMINIMAL_STACK_SIZE,
                 NULL, tskIDLE_PRIORITY, NULL);
     vTaskStartScheduler();
     panic_unsupported();
