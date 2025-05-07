@@ -7,7 +7,7 @@
 - **Carlos Henrique Silva Lopes**
 
 ## 🔗 **Link do vídeo de Ensaio**
-
+https://drive.google.com/file/d/1Rl3XaiU4YfKIjw-3nmdAVIM7SZmE8J5H/view?usp=drivesdk
 
 ---
 
